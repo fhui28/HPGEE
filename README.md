@@ -1,6 +1,8 @@
 # HPGEEs (Simultaneous homogeneity pursuit and variable selection in regression models for multivariate abundance data)
 
-<!-- badges: start --> [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental) <!-- badges: end -->
+<!-- badges: start --> 
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental) 
+<!-- badges: end -->
 
 This repository code contain (template) code assoicated with the manuscript "Simultaneous homogeneity pursuit and variable selection in regression models for multivariate abundance data".
 
