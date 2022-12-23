@@ -14,7 +14,7 @@ There are currently three directories in this repository
 
 -   `code`, which contains `R` scripts implementing the proposed HPGEE method along with other scripts for simulating multivariate abundance data and fitting adaptive lasso GEEs. Many of the functions in those scripts contain pseudo-help files.
 
--   `simulations/setting1`, which contains template scripts to implement the simulation study in the manuscript.
+-   `simulations/setting1`, which contains template scripts to implement the simulation study in the manuscript. **Users are recommended to start here by examining one of `setting1_xxx125.R` scripts to understand how to use HPGEE, among other methods.**
 
 -   `application_GBR`, which contains scripts applying the proposed method to the Great Barrier Reef data in the manuscript. Note the original data sources is from [Pichler et al., 2007](http://www.frdc.com.au/Archived-Reports/FRDC%20Projects/2003-021-DLD.pdf). We provide an example dataset which possess the same structure as the actual data used for analysis in the manuscript, but the values are altered to mask their original values.
 

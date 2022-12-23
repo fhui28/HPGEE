@@ -1,6 +1,6 @@
 #' ---
 #' title: Template code for running simulations involving count (Poisson) response data; see Section 4 of the associated manuscript "Simultaneous homogeneity pursuit and variable selection in regression models for multivariate abundance data" for more details 
-#' abstract: Note the full simulations in the associated manuscript were run on the high performance cluster. The below template code assumes this is not available and therefore is designed for a singlem multi-core machine.
+#' abstract: Note the full simulations in the associated manuscript were run on the high performance cluster. The below template code assumes this is not available and therefore is designed for a single multi-core machine.
 #' author: Originally written by FKCH
 #' date: "Code started Oct 2022"
 #' ---
