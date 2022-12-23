@@ -16,7 +16,7 @@ There are currently three directories in this repository
 
 -   `simulations/setting1`, which contains template scripts to implement the simulation study in the manuscript. **Users are recommended to start here by examining one of `setting1_xxx125.R` scripts to understand how to use HPGEE, among other methods.**
 
--   `application_GBR`, which contains scripts applying the proposed method to the Great Barrier Reef data in the manuscript. Note the original data sources is from [Pichler et al., 2007](http://www.frdc.com.au/Archived-Reports/FRDC%20Projects/2003-021-DLD.pdf). We provide an example dataset which possess the same structure as the actual data used for analysis in the manuscript, but the values are altered to mask their original values.
+-   `application_GBR`, which contains scripts applying the proposed method to the Great Barrier Reef data in the manuscript. Note the original data sources is from [Pichler et al., 2007](http://www.frdc.com.au/Archived-Reports/FRDC%20Projects/2003-021-DLD.pdf). We provide an example dataset which possess the same structure as the actual data used for analysis in the manuscript, but the values are altered to mask their original values. Also contained in this folder are a set of html files of `plotly` objects showing the regularization path, and hence the clustering/variable selection across the species for each covariate, as a function of the tuning parameter.
 
 
 # If you find any bugs and issues...
