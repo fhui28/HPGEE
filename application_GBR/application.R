@@ -1,5 +1,5 @@
 #' ---
-#' title: Applying HPGEEs to Great Barrier Reef (GBR) dataset; see Section 4 of the associated manuscript "Simultaneous homogeneity pursuit and variable selection in regression models for multivariate abundance data" for more details
+#' title: Applying HPGEEs to Great Barrier Reef (GBR) dataset; see Section 5 of the associated manuscript "Simultaneous homogeneity pursuit and variable selection in regression models for multivariate abundance data" for more details
 #' abstract: The original GBR data is sourced from Pichler et al. 2007 <http://www.frdc.com.au/Archived-Reports/FRDC%20Projects/2003-021-DLD.pdf>. We provide an example dataset which possess the same structure as the actual data used for analysis in the manuscript, but the values are altered to mask their original values.
 #' author: Originally written by FKCH
 #' date: "Code started Oct 2022"
@@ -34,7 +34,7 @@ source(here("code","ADLgeefn.R"))
 ##--------------------
 #' # Load in data
 ##---------------------
-load(file = "gbr_exampledata.RData")
+load(file = here("application_GBR", "gbr_exampledata.RData"))
 dim(resp_dat)
 colSums(resp_dat)
 
