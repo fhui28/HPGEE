@@ -306,3 +306,39 @@ for(l in 1:400)
    dosims(NAI = l)
 
 
+##-------------------
+sessionInfo()
+# R version 3.6.3 (2020-02-29)
+# Platform: x86_64-pc-linux-gnu (64-bit)
+# Running under: Linux Mint 19
+# 
+# Matrix products: default
+# BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.7.1
+# LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.7.1
+# 
+# locale:
+#  [1] LC_CTYPE=en_AU.UTF-8       LC_NUMERIC=C               LC_TIME=en_AU.UTF-8        LC_COLLATE=en_AU.UTF-8     LC_MONETARY=en_AU.UTF-8    LC_MESSAGES=en_AU.UTF-8   
+#  [7] LC_PAPER=en_AU.UTF-8       LC_NAME=C                  LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=en_AU.UTF-8 LC_IDENTIFICATION=C       
+# 
+# attached base packages:
+# [1] parallel  stats     graphics  grDevices utils     datasets  methods   base     
+# 
+# other attached packages:
+#  [1] ROCR_1.0-7        gplots_3.0.1.2    tweedie_2.3.3     ncvreg_3.13.0     MASS_7.3-58.1     glmnet_4.1-4      Matrix_1.2-18     doParallel_1.0.17 iterators_1.0.14 
+# [10] foreach_1.5.2     here_1.0.1        sf_0.9-5          blockCV_2.1.4     mgcv_1.8-40       nlme_3.1-149      mvabund_4.2.1     mvtnorm_1.1-3     forcats_0.5.2    
+# [19] stringr_1.4.0     dplyr_1.0.9       purrr_0.3.4       readr_2.1.2       tidyr_1.2.0       tibble_3.1.8      ggplot2_3.3.6     tidyverse_1.3.2  
+# 
+# loaded via a namespace (and not attached):
+#  [1] bitops_1.0-6        fs_1.5.0            lubridate_1.8.0     progress_1.2.2      httr_1.4.2          rprojroot_2.0.2     tools_3.6.3         backports_1.2.1    
+#  [9] utf8_1.2.2          rgdal_1.5-16        R6_2.5.1            KernSmooth_2.23-17  DBI_1.1.0           colorspace_2.0-3    raster_3.4-5        withr_2.5.0        
+# [17] sp_1.5-0            tidyselect_1.1.2    prettyunits_1.1.1   compiler_3.6.3      cli_3.4.1           rvest_1.0.3         xml2_1.3.3          labeling_0.4.2     
+# [25] caTools_1.17.1.4    scales_1.2.1        classInt_0.4-3      digest_0.6.29       pkgconfig_2.0.3     dbplyr_2.2.1        rlang_1.0.6         readxl_1.3.1       
+# [33] rstudioapi_0.13     shape_1.4.4         generics_0.1.3      farver_2.1.1        jsonlite_1.7.2      gtools_3.8.1        googlesheets4_1.0.1 magrittr_2.0.3     
+# [41] Rcpp_1.0.8.3        munsell_0.5.0       fansi_1.0.3         abind_1.4-5         lifecycle_1.0.3     stringi_1.7.6       grid_3.6.3          gdata_2.18.0       
+# [49] crayon_1.5.1        lattice_0.20-41     haven_2.5.1         splines_3.6.3       hms_1.1.2           pillar_1.8.1        codetools_0.2-16    reprex_2.0.2       
+# [57] glue_1.6.2          modelr_0.1.9        vctrs_0.4.2         tzdb_0.3.0          cellranger_1.1.0    gtable_0.3.1        assertthat_0.2.1    broom_1.0.1        
+# [65] e1071_1.7-3         class_7.3-17        survival_3.2-7      googledrive_2.0.0   gargle_1.2.1        units_0.6-7         statmod_1.4.36      ellipsis_0.3.2   
+# 
+
+
+
