@@ -18,6 +18,12 @@ library(patchwork)
 library(cluster)
 library(sf)
 library(ROCR)
+
+library(colorspace)
+library(plotly)
+library(withr)
+#library(htmlwidgets)
+
 here::i_am("application_GBR/application.R")
 library(here)
 
@@ -318,6 +324,48 @@ for(k1 in 1:length(unique(getcoef_long$Covariate))) {
    aggregate(Species ~ Estimate, data = getcoef_long %>% dplyr::filter(Covariate == unique(getcoef_long$Covariate)[k1]), FUN = print) %>% 
       print
    }
+
+
+
+#' # Construct a regularization path for each covariate, which effectively acts as tree showing the clustering taking place across species
+covariate_names <- c("Intercept", "Bathymetry", "Slope", "Aspect", "Bottom stress", "Gravel", "Mud", "Carbonate", "Oxygen", "Temperature", "Chlorophyll-a")
+
+all_coefficients_array <- array(NA, 
+                                dim = c(num_resp, ncol(X), length(fit_hpgee_RR$lambda)),
+                                dimnames = list(species = common_spp_names, covariates = covariate_names, lambda = 1:length(fit_hpgee_RR$lambda)))
+
+for(k0 in 1:length(fit_hpgee$lambda)) {
+   all_coefficients_array[,,k0] <- matrix(fit_hpgee_RR$coefficients_path[,k0], nrow = num_resp, byrow = TRUE)
+   }
+
+
+for(k0 in 2:length(covariate_names)) {
+   cw_coefficients <- all_coefficients_array[,k0,] %>% 
+      t %>% 
+      as.data.frame %>% 
+      mutate(lambda = fit_hpgee_RR$lambda) %>% 
+      relocate(lambda) %>% 
+      pivot_longer(-lambda, names_to = "species")
+   
+   p <- ggplot(cw_coefficients, aes(x = lambda, y = value, color = species)) +
+      geom_hline(yintercept = 0, linetype = 3) +
+      geom_line() +
+      geom_vline(xintercept = fit_hpgee_RR$lambda[which.min(fit_hpgee_RR$ICs$ERIC1)], col = "darkred", linetype = 2) +
+      scale_x_log10() +
+      scale_color_discrete_qualitative() +
+      theme_bw() +
+      labs(x = "Tuning parameter (lambda)", y = "Coefficient value", title = covariate_names[k0], color = "Species") +
+         coord_flip() 
+   
+   with_options(
+      list(digits = 4), ggplotly(p) %>% layout(legend = list(orientation = "h", y = -0.2))
+      )
+   }
+
+
+
+
+
 
 
 
