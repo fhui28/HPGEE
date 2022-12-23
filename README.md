@@ -4,6 +4,8 @@
 
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 
+[![DOI](https://zenodo.org/badge/565419519.svg)](https://zenodo.org/badge/latestdoi/565419519)
+
 <!-- badges: end -->
 
 This repository code contain (template) code associated with the manuscript "Simultaneous homogeneity pursuit and variable selection in regression models for multivariate abundance data" by [Hui](https://francishui.netlify.app/), [Maestrini](https://sites.google.com/view/lucamaestrini), and [Welsh](https://cbe.anu.edu.au/about/staff-directory/professor-alan-welsh).
