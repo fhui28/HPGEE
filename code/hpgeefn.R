@@ -8,7 +8,7 @@
 #' @param nlambda The number of tuning parameters, lambda, values.
 #' @param lambda_min_ratio The smallest value for the tuning parameter lambda, as a fraction of the maximum (internally-derived) lambda value (i.e., a value such that penalization leads to an intercept-only regression structure for each response). 
 #' @param lambda A user-supplied tuning parameter, lambda, sequence. Note this is usually not supplied, as it is standard to have the function itself compute its own lambda sequence based on \code{nlambda} and \code{lambda_min_ratio}. If you want compute a penalized GEE for a given lambda, you can consider using \code{hpgee_fit} instead.
-#' @param min_df The minimum number of non-zero coefficients in the model, including the intercept. This is useful to supply if, when the function tries to find a appropriate lambda sequence, the user wants the maximum value of lambda to not necessarily shrink to an intercept-only model. Defaults to \code{NULL}, in which case \code{min_df} is set tp the number of columns of \code{y} i.e., an intercept-only model.  
+#' @param min_df The minimum number of non-zero coefficients in the model, including the intercept. This is useful to supply if, when the function tries to find a appropriate lambda sequence, the user wants the maximum value of lambda to not necessarily shrink to an intercept-only model. Defaults to \code{NULL}, in which case \code{min_df} is set to the number of columns of \code{y} i.e., an intercept-only model.
 #' @param kappa A vector of the length same as \code{ncol(X_coefs)} i.e., the number of covariates, which controls whether any penalization should be applied to the covariate at all. Note the default of \code{rep(c(0,1), c(1,ncol(X)-1))}, which amounts is not penalizing the first column of \code{X} i.e., the intercept column, and then penalization the other columns of \code{X} equally.
 #' @param corstr The structure to use for the working correlation in the GEE. Currently, the options permitted are "independence", "unstructured", and "reducedrank".
 #' @param rank The rank of the reduced-rank working correlation matrix, if \code{corstr = "reducedrank"}.
@@ -550,6 +550,10 @@ function() {
          do_FA <- try(factanal(x = pearsonres, factors = rank, rotation = "none"), silent = TRUE)
          if(inherits(do_FA, "try-error"))
           do_FA <- try(factanal(x = pearsonres, factors = rank, rotation = "none", nstart = 100), silent = TRUE)
+         if(inherits(do_FA, "try-error"))
+          do_FA <- try(factanal(x = pearsonres, factors = rank, rotation = "none", nstart = 100, lower = 0.01), silent = TRUE)
+         if(inherits(do_FA, "try-error"))
+          do_FA <- try(factanal(x = pearsonres, factors = rank, rotation = "none", nstart = 100, lower = 0.1), silent = TRUE)
          new_R <- cw_R <- (tcrossprod(do_FA$loadings) + diag(x = do_FA$uniquenesses)) * (rawsds %o% rawsds)
          rm(do_FA, rawsds, pearsonres)
          }
@@ -624,8 +628,12 @@ function() {
    score_covariance <- Diagonal(x = 1/cw_Arootinv) %*% kronecker(Diagonal(n = num_units), Rbar) %*% Diagonal(x = 1/cw_Arootinv)
    score_covariance <- crossprod(D, bigVinv) %*% score_covariance %*% (bigVinv %*% D) 
    score_covariance <- 0.5*(score_covariance + t(score_covariance)) 
-   score_covariance <- chol2inv(chol(score_covariance))
-   out$score_statistic <- as.vector(crossprod(score_vec, score_covariance) %*% score_vec)    
+   score_covariance_inv <- try(chol2inv(chol(score_covariance)), silent = TRUE)
+   if(inherits(score_covariance_inv, "try-error")) {
+       score_covariance <- Matrix::nearPD(score_covariance)$mat
+       score_covariance_inv <- chol2inv(chol(score_covariance))
+       }
+   out$score_statistic <- as.vector(crossprod(score_vec, score_covariance_inv) %*% score_vec)
    rm(D, bigVinv, score_vec, Rbar, score_covariance)
    
    
