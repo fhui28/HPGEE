@@ -271,7 +271,7 @@ get_num_unique_values <- apply(getcoef_mat, 2, function(x) length(unique(x)))
 covariate_names <- paste0(c("Intercept", "Bathymetry", "Slope", "Aspect", "Bottom stress", "Gravel", "Mud", "Carbonate", "Oxygen", "Temperature", "Chlorophyll-a"), " (", get_num_unique_values, ")")
 colnames(getcoef_mat) <- covariate_names
 abbreviated_spp_names <- colnames(resp_dat)
-common_spp_names <- c(
+spp_scientific_names <- c(
    "Scyllarus_martensii", 
    "Parthenope_longispinus", 
    "Lophiotoma_acuta", 
@@ -292,7 +292,30 @@ common_spp_names <- c(
    "Brissopsis_luzonica", 
    "Myra_tumidospina", 
    "Charybdis_truncata")
-rownames(getcoef_mat) <- common_spp_names
+
+spp_common_names <- c( # As best as possible via Google searching!
+   "Striated locust lobster", 
+   "White long-armed crab", 
+   "Marbled turrid", 
+   "Pebble crab sp A", 
+   "Heart urchin", 
+   "Minute carrier shell", 
+   "Bivalve sp A",
+   "Seastar", 
+   "Saltwater clam sp A", 
+   "Sea snail sp A", 
+   "Pebble crab sp B", 
+   "Tuberculate flathead", 
+   "Swimming crab", 
+   "Bivalve sp B", 
+   "Brittle stars", 
+   "Sea urchin sp A", 
+   "Horny sponges", 
+   "Sea urchin sp B", 
+   "Crab sp A", 
+   "Blunt-toothed crab")
+
+rownames(getcoef_mat) <- spp_common_names
 
 getcoef_mat
 
@@ -302,12 +325,14 @@ ggplot(getcoef_mat[,-1] %>%
           rownames_to_column(var = "species") %>% 
           pivot_longer(-species) %>% 
           mutate(species = fct_inorder(species)) %>% 
-          mutate(name = fct_inorder(name)), aes(x = name, y = species)) + #fill = factor(value)
-   geom_tile(alpha = 0, color = "gray", show.legend = FALSE) +
-   geom_text(aes(label = round(value,2), color = factor(value)), show.legend = FALSE) +
+          mutate(species = fct_relabel(species, ~ gsub("\\.", " ", .x))) %>% 
+          mutate(iszero = 1 + 1*(value == 0)) %>% 
+          mutate(name = fct_inorder(name)), 
+       aes(x = name, y = species, fill = factor(value))) + 
+   geom_tile(color = "gray", show.legend = FALSE) +
+   geom_text(aes(label = round(value,2), fontface = iszero), color = "black", show.legend = FALSE) + #color = factor(value)), 
    labs(x = "Covariate (number of unique estimates)", y = "Species", fill = "Estimate") +
-   scale_color_viridis_d() +
-   coord_flip() +
+   scale_fill_discrete_diverging() +
    theme_bw() +
    theme(axis.text.x = element_text(angle = 45, hjust = 1), panel.grid.major = element_blank())
 
@@ -332,7 +357,7 @@ covariate_names <- c("Intercept", "Bathymetry", "Slope", "Aspect", "Bottom stres
 
 all_coefficients_array <- array(NA, 
                                 dim = c(num_resp, ncol(X), length(fit_hpgee_RR$lambda)),
-                                dimnames = list(species = common_spp_names, covariates = covariate_names, lambda = 1:length(fit_hpgee_RR$lambda)))
+                                dimnames = list(species = spp_common_names, covariates = covariate_names, lambda = 1:length(fit_hpgee_RR$lambda)))
 
 for(k0 in 1:length(fit_hpgee$lambda)) {
    all_coefficients_array[,,k0] <- matrix(fit_hpgee_RR$coefficients_path[,k0], nrow = num_resp, byrow = TRUE)
