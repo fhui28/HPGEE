@@ -252,6 +252,59 @@ ggplot(AUC_results %>% dplyr::filter(method != "HPGEE"), aes(x = method, y = val
    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
+#' ## Raw metric values
+RMSE_results <- abind::abind(lapply(1:5, function(k) all_RMSE[,,k]), along = 3) %>% 
+   apply(., c(1,2), mean) %>% 
+   as.data.frame %>% 
+   rownames_to_column(var = "species") %>% 
+   dplyr::select(-GEE_ind) %>% 
+   pivot_longer(-species, names_to = "method") %>% 
+   dplyr::filter(method %in% sel_methods) %>% 
+   mutate(method = fct_recode(method, HPGEE = "HPGEE_RR_ERIC", GEE = "GEE_RR", "K-means" = "kmeans_RR", ADLGEE = "ADLGEE_RR_ERIC")) %>% 
+   mutate(method = fct_relevel(method, "HPGEE", "ADLGEE", "glmnet", "GEE", "K-means")) 
+
+ggplot(RMSE_results, aes(x = method, y = value)) +
+   geom_boxplot() +
+   labs(y = "RMSE", x = "Method", title = "RMSE") +
+   theme_bw() +
+   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+crossentropy_results <- abind::abind(lapply(1:5, function(k) all_mce[,,k]), along = 3) %>% 
+   apply(., c(1,2), mean) %>% 
+   as.data.frame %>% 
+   rownames_to_column(var = "species") %>% 
+   dplyr::select(-GEE_ind) %>% 
+   pivot_longer(-species, names_to = "method") %>% 
+   dplyr::filter(method %in% sel_methods) %>% 
+   mutate(method = fct_recode(method, HPGEE = "HPGEE_RR_ERIC", GEE = "GEE_RR", "K-means" = "kmeans_RR", ADLGEE = "ADLGEE_RR_ERIC")) %>% 
+   mutate(method = fct_relevel(method, "HPGEE", "ADLGEE", "glmnet", "GEE", "K-means")) 
+
+ggplot(crossentropy_results, aes(x = method, y = value)) +
+   geom_boxplot() +
+   labs(y = "MCE", x = "Method", title = "Mean cross-entropy") +
+   theme_bw() +
+   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+AUC_results <- abind::abind(lapply(1:5, function(k) all_AUC[,,k]), along = 3) %>% 
+   apply(., c(1,2), mean) %>% 
+   as.data.frame %>% 
+   rownames_to_column(var = "species") %>% 
+   dplyr::select(-GEE_ind) %>% 
+   pivot_longer(-species, names_to = "method") %>% 
+   dplyr::filter(method %in% sel_methods) %>% 
+   mutate(method = fct_recode(method, HPGEE = "HPGEE_RR_ERIC", GEE = "GEE_RR", "K-means" = "kmeans_RR", ADLGEE = "ADLGEE_RR_ERIC")) %>% 
+   mutate(method = fct_relevel(method, "HPGEE", "ADLGEE", "glmnet", "GEE", "K-means")) 
+
+ggplot(AUC_results, aes(x = method, y = value)) +
+   geom_boxplot() +
+   labs(y = "AUC", x = "Method", title = "AUC") +
+   theme_bw() +
+   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+
 ##-------------------
 #' # Fit HPGEEs to full dataset, and examine results
 ##-------------------
