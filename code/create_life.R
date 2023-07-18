@@ -6,7 +6,7 @@
 #' @param X Model matrix. Note the intercept term must be manually included in X if the user wishes to include such as term.
 #' @param X_coefs A matrix of response-specific regression coefficients corresponding to X. The number of rows is equal to the number of responses in the resulting simulated dataset.
 #' @param true_lv An optional matrix of latent variables to use in the LVM. Otherwise, the latent variables are simulated indepndently from a standard normal distribution.
-#' @loadings loadings A loading matrix i.e., response-specific weights, corresponing to the latent variables. The number of rows is equal to the number of responses in the resulting simulated dataset, while the number of columns is taken as the number of latent variables to use in the LVM.
+#' @param loadings A loading matrix i.e., response-specific weights, corresponing to the latent variables. The number of rows is equal to the number of responses in the resulting simulated dataset, while the number of columns is taken as the number of latent variables to use in the LVM.
 #' @param offset A matrix of offsets to include, is desired. 
 #' @param disp_param A response-specific vector of dispersion parameters to use for appropriate families e.g., the negative binomial family. Defaults to a vector of ones.
 #' @param power_param A response-specific vector of power parameters to use for appropriate families e.g., the Tweedie family. Defaults to a vector with all values of 1.2.
