@@ -1,6 +1,7 @@
 #' ---
 #' title: Applying HPGEEs to Great Barrier Reef (GBR) dataset; see Section 5 of the associated manuscript "Simultaneous homogeneity pursuit and variable selection in regression models for multivariate abundance data" for more details
-#' abstract: The original GBR data is sourced from Pichler et al. 2007 <http://www.frdc.com.au/Archived-Reports/FRDC%20Projects/2003-021-DLD.pdf>. We provide an example dataset which possess the same structure as the actual data used for analysis in the manuscript, but the values are altered to mask their original values.
+#' abstract:  The data that support the findings in this paper are available from the Australian Institute of Marine Science, and discussed in Pichler et al., (2007) <http://www.frdc.com.au/Archived-Reports/FRDC%20Projects/2003-021-DLD.pdf>. Restrictions apply to the availability of these data, which were used under license for this study. Data are available <https://apps.aims.gov.au/metadata/view/79a8ad3d-9134-4fa6-9852-d54a9b3a9da4> with the permission of Australian Institute of Marine Science (AIMS). 
+#' We provide a synthetic dataset here which possess the same structure as the actual data used for analysis in the manuscript, but the values are altered to mask their original values.
 #' author: Originally written by FKCH
 #' date: "Code started Oct 2022"
 #' ---
