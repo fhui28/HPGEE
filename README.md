@@ -8,7 +8,7 @@
    
 <!-- badges: end -->
 
-This repository code contain template code associated with the manuscript "Simultaneous homogeneity pursuit and variable selection in regression models for multivariate abundance data" by [Hui](https://francishui.netlify.app/), [Maestrini](https://sites.google.com/view/lucamaestrini), and [Welsh](https://cbe.anu.edu.au/about/staff-directory/professor-alan-welsh).
+This repository code contain template code associated with the article "Simultaneous homogeneity pursuit and variable selection in regression models for multivariate abundance data" by [Hui](https://francishui.netlify.app/), [Maestrini](https://sites.google.com/view/lucamaestrini), and [Welsh](https://cbe.anu.edu.au/about/staff-directory/professor-alan-welsh), which is available in [Biometrics](https://doi.org/10.1093/biomtc/ujad001). As the name suggests, the code implements a generalized estimating equation (GEE) approach for simultaneous homogeneity pursuit (i.e., grouping species with similar coefficient values together, while allowing differing groups for different covariates) and variable selection in regression models for multivariate abundance data in community ecology.
 
 # Getting started
 
