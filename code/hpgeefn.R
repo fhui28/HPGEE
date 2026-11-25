@@ -222,7 +222,8 @@ hpgee_regpath <- function(y, X, family = gaussian(), nlambda = 100, lambda_min_r
    ##-----------------------
    ## Finished fitting. Set up quantities for output 
    ##-----------------------
-   out <- list(call = match.call(), lambda = lambdaseq,
+   out <- list(call = match.call(), 
+               lambda = lambdaseq,
                coefficients_path = coefficients_path, 
                active_sets_path = active_sets_path,
                unique_values_path = unique_values_path, 
