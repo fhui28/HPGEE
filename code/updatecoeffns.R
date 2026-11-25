@@ -34,21 +34,30 @@
    working_response <- D %*% cw_reparametrized_coef + (yvec - .calc_fitted_value(linear_predictor = as.vector(bigXtrans %*% cw_reparametrized_coef), family = family))
    working_response <- as.vector(working_response)
    
+   if(length(control$lower_limits) == 1) 
+      control$lower_limits <- rep(control$lower_limits, length(cw_reparametrized_coef))
+   if(length(control$upper_limits) == 1) 
+      control$upper_limits <- rep(control$upper_limits, length(cw_reparametrized_coef))
+   
    #bigBD <- bigB %*% D
    #bigBz <- bigB %*% working_response
    #fit_adaptivelasso <- glmnet(x = bigBD, y = bigBz, intercept = FALSE)
    if(lambda == 0) {
-      fit <- bigGlm(x = bigB %*% D, y = bigB %*% working_response, intercept = FALSE, lower.limits = control$lower_limits, upper.limits = control$upper_limits)
+      fit <- bigGlm(x = bigB %*% D, 
+                    y = bigB %*% working_response, 
+                    intercept = FALSE, 
+                    lower.limits = c(-Inf, control$lower_limits), 
+                    upper.limits. = c(Inf, control$upper_limits))
       new_coef <- fit$beta[,1]
       }
-   if(lambda > 0) {
+   if(lambda > 0) { 
       fit <- glmnet(x = bigB %*% D, 
                     y = bigB %*% working_response, 
                     intercept = FALSE, 
                     lambda = lambda, 
                     penalty.factor = penalty_weights, 
-                    lower.limits = control$lower_limits, 
-                    upper.limits = control$upper_limits)
+                    lower.limits = c(-Inf, control$lower_limits), 
+                    upper.limits. = c(Inf, control$upper_limits))
       new_coef <- fit$beta[,1]
       #new_coef <- coef(fit_adaptivelasso, s = lambda, exact = TRUE, x = bigB %*% D, y = bigB %*% working_response, penalty.factor = penalty_weights)[-1,1] # Using linear interpolation can speed things up per step, but often leads to longer computation time as things take more steps to complete
       }
