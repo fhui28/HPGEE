@@ -14,10 +14,11 @@
 #' @param rank The rank of the reduced-rank working correlation matrix, if \code{corstr = "reducedrank"}.
 #' @param num_cores The number of cores to use as  part of computation. 
 #' @param multicore_path Should parallelization be used to construct the regularization path? Why this defaults to \code{FALSE}, it is often recommended to swtich this to speed things up. This is especially since construction of the regularization path of GEEs currently does *not* make use of warm starts.
-#' @param control A list for controlling the GEE estimation algorithm, including the maximum number of iterations (maxit), tolerance (tol), whether to employ step halving when updating the regression coefficients (step_halving), maximum number of step_halving attempts (max_halving_steps), and whether to print updates along the way (trace).
+#' @param control A list for controlling the GEE estimation algorithm, including the maximum number of iterations (maxit), tolerance (tol), whether to employ step halving when updating the regression coefficients (step_halving), maximum number of step_halving attempts (max_halving_steps), lower and upper limits for the regression coefficients (lower_limits and upper_limits, respectively), and whether to print updates along the way (trace). Note latter needs to be set up in the right way if you want to impose certain constraints, e.g., if you want to constrain all estimated non-zero covariate effects to be positive, while intercepts remain unconstrained, then you need to try something like `lower_limits = rep(rep(c(-Inf, 0), c(1, ncol(X)-1)), ncol(y))`.
 #' 
 #' @return A object of class "adlgee_regpath" with the following values, as appropriate:
 #' \item{call:}{The function call.}
+#' \item{penalty_weights:}{The adaptive lasso penalty weights, calculated as the inverse of the absolute value of the unpenalized GEE coefficients multiplied by kappa as appropriate.}
 #' \item{lambda:}{The actual sequence of tuning parameter, lambda, values used.}
 #' \item{coefficients_path:}{A sparse matrix showing the estimated regression coefficients at each point on the regularization path. The number of rows is equal \code{ncol({X}*ncol(y)}, where the coefficients run on a per-response basis, while the number of columns is equal to \code{length(lambda)}.}
 #' \item{active_sets_path:}{A matrix showing the number of non-zero coefficients per covariate, at each point on the regularization path. The number of rows is equal to \code{length(lambda)}, while the number of columns is equal to \code{ncol(X)}.}
@@ -37,17 +38,32 @@ function() {
    min_df = NULL
    family = myfam
    kappa = rep(c(0,1), c(1,ncol(X)-1))
-   corstr = "reducedrank"
+   corstr = "independence"
    rank = 3
    num_cores = 1
    multicore_path = FALSE
-   control = list(maxit = 100, tol = 1e-6, step_halving = TRUE, max_halving_steps = 30, trace = TRUE)   
+   control = list(maxit = 100, tol = 1e-6, step_halving = TRUE, max_halving_steps = 30, trace = TRUE, lower_limits = form_lower_limits)   
    }
 
-adlgee_regpath <- function(y, X, family = gaussian(), nlambda = 100, lambda_min_ratio = 1e-4, lambda = NULL, min_df = NULL, 
-                  kappa = rep(c(0,1), c(1,ncol(X)-1)),
-                  corstr = "independence", rank = 2, num_cores = NULL, multicore_path = FALSE,
-                  control = list(maxit = 100, tol = 1e-6, step_halving = TRUE, max_halving_steps = 30, trace = FALSE)) {
+adlgee_regpath <- function(y, 
+                           X, 
+                           family = gaussian(),
+                           nlambda = 100,
+                           lambda_min_ratio = 1e-4,
+                           lambda = NULL, 
+                           min_df = NULL, 
+                           kappa = rep(c(0,1), c(1,ncol(X)-1)),
+                           corstr = "independence",
+                           rank = 2,
+                           num_cores = NULL, 
+                           multicore_path = FALSE,
+                           control = list(maxit = 100,
+                                          tol = 1e-6,
+                                          step_halving = TRUE, 
+                                          max_halving_steps = 30, 
+                                          lower_limits = -Inf,
+                                          upper_limits = Inf,
+                                          trace = FALSE)) {
    
    ##-----------------------
    ## Opening checks and set up
@@ -105,8 +121,16 @@ adlgee_regpath <- function(y, X, family = gaussian(), nlambda = 100, lambda_min_
    ## Fit unpenalized GEE and calculate adaptive weightS
    ##-----------------------
    message("Fitting initial unpenalized GEE and calculating penalty weights...")
-   fit_ungee <- unpenalized_gee(y = y, X = X, bigX = bigX, family = family, control = control, method = "glmnet", corstr = corstr, rank = rank, num_cores = num_cores)
-   penweights_ADL <- 1/abs(fit_ungee$coefficients_matrix)*matrix(kappa, nrow = num_resp, ncol = num_X, byrow = TRUE)
+   fit_ungee <- unpenalized_gee(y = y,
+                                X = X, 
+                                bigX = bigX, 
+                                family = family, 
+                                method = "glmnet", 
+                                corstr = corstr, 
+                                rank = rank, 
+                                num_cores = num_cores,
+                                control = control)
+   penweights_ADL <- 1/abs((fit_ungee$coefficients_matrix) + 1e-6)*matrix(kappa, nrow = num_resp, ncol = num_X, byrow = TRUE)
    penweights_ADL <- as.vector(t(penweights_ADL))
    
    ##-----------------------
@@ -117,15 +141,32 @@ adlgee_regpath <- function(y, X, family = gaussian(), nlambda = 100, lambda_min_
       lambdaseq <- lambda
    if(is.null(lambda)) {
       message("Finding an appropriate sequence of lambda values...")
-      fit_togetmaxlambda <- .adlgee_fit_manual(yvec = yvec, bigX = bigX, lambda = 0, penalty_weights = penweights_ADL, 
-                                          num_resp = num_resp, num_units = num_units, getalambdaseq = TRUE,
-                                          family = family, corstr = corstr, rank = rank, response_names = colnames(y), control = control)
+      fit_togetmaxlambda <- .adlgee_fit_manual(yvec = yvec, 
+                                               bigX = bigX, 
+                                               lambda = 0, 
+                                               penalty_weights = penweights_ADL, 
+                                               num_resp = num_resp, 
+                                               num_units = num_units, 
+                                               getalambdaseq = TRUE,
+                                               family = family, 
+                                               corstr = corstr, 
+                                               rank = rank, 
+                                               response_names = colnames(y),
+                                               control = control)
       lambda_max <- fit_togetmaxlambda$regpath$lambda[1]
       rm(fit_togetmaxlambda)
    
-      trynullfit <- .adlgee_fit_manual(yvec = yvec, bigX = bigX, lambda = lambda_max, penalty_weights = penweights_ADL, 
-                           num_resp = num_resp, num_units = num_units, 
-                           family = family, corstr = corstr, rank = rank, response_names = colnames(y), control = control)
+      trynullfit <- .adlgee_fit_manual(yvec = yvec, 
+                                       bigX = bigX, 
+                                       lambda = lambda_max, 
+                                       penalty_weights = penweights_ADL, 
+                                       num_resp = num_resp, 
+                                       num_units = num_units, 
+                                       family = family,
+                                       corstr = corstr, 
+                                       rank = rank, 
+                                       response_names = colnames(y),
+                                       control = control)
       
       
       if(is.null(min_df)) 
@@ -135,9 +176,17 @@ adlgee_regpath <- function(y, X, family = gaussian(), nlambda = 100, lambda_min_
 
       while(sum(trynullfit$coefficients_matrix != 0) > min_df) {
          lambda_max <- lambda_max*1.1 
-         trynullfit <- .adlgee_fit_manual(yvec = yvec, bigX = bigX, lambda = lambda_max, penalty_weights = penweights_ADL, 
-                                     num_resp = num_resp, num_units = num_units,
-                                     family = family, corstr = corstr, rank = rank, response_names = colnames(y), control = control)
+         trynullfit <- .adlgee_fit_manual(yvec = yvec, 
+                                          bigX = bigX, 
+                                          lambda = lambda_max, 
+                                          penalty_weights = penweights_ADL, 
+                                          num_resp = num_resp, 
+                                          num_units = num_units,
+                                          family = family, 
+                                          corstr = corstr, 
+                                          rank = rank, 
+                                          response_names = colnames(y),
+                                          control = control)
          }
       
       lambdaseq <- lseq(lambda_max, lambda_max*lambda_min_ratio, length = nlambda, decreasing = TRUE)
@@ -157,9 +206,17 @@ adlgee_regpath <- function(y, X, family = gaussian(), nlambda = 100, lambda_min_
       AIC <- BIC <- BIC_logNloglogp <- EBIC1 <- EBIC2 <- ERIC1 <- numeric(length(lambdaseq))
       
       for(l in 1:length(lambdaseq)) {
-         cwfit <- .adlgee_fit_manual(yvec = yvec, bigX = bigX, lambda = lambdaseq[l], penalty_weights = penweights_ADL, 
-                                 num_resp = num_resp, num_units = num_units, 
-                                 family = family, corstr = corstr, rank = rank, response_names = colnames(y), control = control)
+         cwfit <- .adlgee_fit_manual(yvec = yvec, 
+                                     bigX = bigX, 
+                                     lambda = lambdaseq[l],
+                                     penalty_weights = penweights_ADL, 
+                                     num_resp = num_resp, 
+                                     num_units = num_units, 
+                                     family = family, 
+                                     corstr = corstr, 
+                                     rank = rank, 
+                                     response_names = colnames(y), 
+                                     control = control)
          coefficients_path[,l,drop=FALSE] <- cwfit$coefficients 
          unique_values_path[l,,drop=FALSE] <- cwfit$unique_values
          active_sets_path[l,,drop=FALSE] <- cwfit$active_sets
@@ -184,12 +241,23 @@ adlgee_regpath <- function(y, X, family = gaussian(), nlambda = 100, lambda_min_
       message("Beginning regularization path construction (using parallel computing)...")
       
       adlgee_outerfn <- function(l) {
-         cwfit <- .adlgee_fit_manual(yvec = yvec, bigX = bigX, lambda = lambdaseq[l], penalty_weights = penweights_ADL, 
-                                 num_resp = num_resp, num_units = num_units, 
-                                 family = family, corstr = corstr, rank = rank, response_names = colnames(y), control = control)
+         cwfit <- .adlgee_fit_manual(yvec = yvec,
+                                     bigX = bigX, 
+                                     lambda = lambdaseq[l], 
+                                     penalty_weights = penweights_ADL, 
+                                     num_resp = num_resp, 
+                                     num_units = num_units, 
+                                     family = family, 
+                                     corstr = corstr, 
+                                     rank = rank, 
+                                     response_names = colnames(y),
+                                     control = control)
          
-         out <- list(coefficients = cwfit$coefficients, unique_values = cwfit$unique_values, 
-                     active_sets = cwfit$active_sets, df = sum(cwfit$reparametrized_coefficients != 0), score_statistic = cwfit$score_statistic)
+         out <- list(coefficients = cwfit$coefficients, 
+                     unique_values = cwfit$unique_values, 
+                     active_sets = cwfit$active_sets, 
+                     df = sum(cwfit$reparametrized_coefficients != 0), 
+                     score_statistic = cwfit$score_statistic)
    
          out$AIC = out$score_statistic + 2*out$df
          out$BIC = out$score_statistic + log(num_units)*out$df
@@ -220,7 +288,9 @@ adlgee_regpath <- function(y, X, family = gaussian(), nlambda = 100, lambda_min_
    ##-----------------------
    ## Finished fitting. Set up quantities for output 
    ##-----------------------
-   out <- list(call = match.call(), lambda = lambdaseq,
+   out <- list(call = match.call(),
+               penalty_weights = penweights_ADL,
+               lambda = lambdaseq,
                coefficients_path = coefficients_path, 
                active_sets_path = active_sets_path,
                unique_values_path = unique_values_path, 
@@ -230,8 +300,12 @@ adlgee_regpath <- function(y, X, family = gaussian(), nlambda = 100, lambda_min_
                num_units = num_units, num_resp = num_resp)
    
    out$ICs <- data.frame(AIC, BIC, BIC_logNloglogp, EBIC1, EBIC2, ERIC1)
-   out$singlefit_quantities <- list(yvec = yvec, bigX = bigX, penalty_weights = penweights_ADL, 
-                                    control = control, response_names = colnames(y), covariate_names = colnames(X))
+   out$singlefit_quantities <- list(yvec = yvec, 
+                                    bigX = bigX, 
+                                    penalty_weights = penweights_ADL, 
+                                    control = control, 
+                                    response_names = colnames(y), 
+                                    covariate_names = colnames(X))
    
    class(out) <- "adlgee_regpath"
    return(out)
@@ -268,7 +342,11 @@ adlgee_regpath <- function(y, X, family = gaussian(), nlambda = 100, lambda_min_
 
 ## TODO: Standard errors for beta. This is quite difficult though: oracle allows you to get standard errors for the non-zero reparametrized coefficients. But you need the joint distribution of both zero and non-zero reparametrized coefficients to get the joint distribution of the original coefficients. Bootstrap is not expected to work well, and we already know from the Poestcher and Leeb work that finite sample distributions are pretty horrible anyway!
 
-adlgee_fit <- function(adlgee_regpath, lambda, family = gaussian(), corstr = "independence", rank = 2) {
+adlgee_fit <- function(adlgee_regpath, 
+                       lambda, 
+                       family = gaussian(), 
+                       corstr = "independence", 
+                       rank = 2) {
    if(length(lambda) > 1)
       stop("Only a scalar value of the tuning parameter, lambda, is permitted.")
    
@@ -290,20 +368,21 @@ adlgee_fit <- function(adlgee_regpath, lambda, family = gaussian(), corstr = "in
    }
 
 
-function() {
-   lambda = lambdaseq[l]
-   penalty_weights = penweights_ADL
-   family = myfam
-   start_coef = NULL
-   response_names = NULL
-   covariate_names <- NULL
-   getalambdaseq <- FALSE
-   }
-
 #' For yvec, it is assumed that response runs faster than site
-.adlgee_fit_manual <- function(yvec, bigX, lambda = 0, penalty_weights, 
-                          num_resp, num_units, family = gaussian(), corstr = "independence", rank = 2, start_coef = NULL, 
-                          response_names = NULL, covariate_names = NULL, getalambdaseq = FALSE, control) {
+.adlgee_fit_manual <- function(yvec, 
+                               bigX, 
+                               lambda = 0, 
+                               penalty_weights, 
+                               num_resp, 
+                               num_units, 
+                               family = gaussian(), 
+                               corstr = "independence", 
+                               rank = 2, 
+                               start_coef = NULL, 
+                               response_names = NULL, 
+                               covariate_names = NULL, 
+                               getalambdaseq = FALSE, 
+                               control) {
    
    ##-----------------------
    ## Opening checks and set up
@@ -430,10 +509,18 @@ function() {
       ## Update coefficients
       ##-----------------------
       if(penalty_type == "adaptive_lasso") {
-         get_update_coef <- .update_coef_glmnet(cw_reparametrized_coef = cw_reparametrized_coef, yvec = yvec, bigXtrans = bigX, 
-                                                lambda = lambda, penalty_weights = penalty_weights,
-                                                W = cw_W, Arootinv = cw_Arootinv, Rinv = chol2inv(chol(cw_R)), 
-                                                num_units = num_units, num_resp = num_resp, family = family, control = control)
+         get_update_coef <- .update_coef_glmnet(cw_reparametrized_coef = cw_reparametrized_coef, 
+                                                yvec = yvec, 
+                                                bigXtrans = bigX, 
+                                                lambda = lambda, 
+                                                penalty_weights = penalty_weights,
+                                                W = cw_W, 
+                                                Arootinv = cw_Arootinv, 
+                                                Rinv = chol2inv(chol(cw_R)), 
+                                                num_units = num_units, 
+                                                num_resp = num_resp, 
+                                                family = family, 
+                                                control = control)
          
          new_reparametrized_coef <- get_update_coef$coefficients
          temp_coef_err <- sum((new_reparametrized_coef - cw_reparametrized_coef)^2)
@@ -591,10 +678,18 @@ function() {
    rownames(out$working_correlation) <- colnames(out$working_correlation) <- response_names 
    
    if(getalambdaseq) {
-      formregpath <- .update_coef_glmnet(cw_reparametrized_coef = cw_reparametrized_coef, yvec = yvec, bigXtrans = bigX, 
-                                         lambda = -1, penalty_weights = penalty_weights,
-                                         W = cw_W, Arootinv = cw_Arootinv, Rinv = chol2inv(chol(cw_R)), 
-                                         num_units = num_units, num_resp = num_resp, family = family, control = control)
+      formregpath <- .update_coef_glmnet(cw_reparametrized_coef = cw_reparametrized_coef, 
+                                         yvec = yvec, 
+                                         bigXtrans = bigX, 
+                                         lambda = -1, 
+                                         penalty_weights = penalty_weights,
+                                         W = cw_W, 
+                                         Arootinv = cw_Arootinv, 
+                                         Rinv = chol2inv(chol(cw_R)), 
+                                         num_units = num_units, 
+                                         num_resp = num_resp, 
+                                         family = family, 
+                                         control = control)
       out$regpath <- formregpath$fit   
       }
 
