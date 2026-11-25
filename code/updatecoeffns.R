@@ -8,14 +8,24 @@
 
    NR_move <- as.vector(DtVinvD_inv %*% DestArootinvTbigRinv %*% working_residual[good])
    new_coef <- as.vector(cw_coef + step_size * NR_move)
-
+.update_coef_glmnet
    out <- list(coefficients = as.vector(new_coef), NR_move = NR_move)
    return(out)
    }
  
 
-.update_coef_glmnet <- function(cw_reparametrized_coef, yvec, bigXtrans, lambda = 0, penalty_weights = rep(1, length(cw_reparametrized_coef)), 
-                                W, Arootinv, Rinv, num_units, num_resp, family, control) {
+.update_coef_glmnet <- function(cw_reparametrized_coef, 
+                                yvec, 
+                                bigXtrans, 
+                                lambda = 0, 
+                                penalty_weights = rep(1, length(cw_reparametrized_coef)), 
+                                W, 
+                                Arootinv, 
+                                Rinv, 
+                                num_units, 
+                                num_resp, 
+                                family, 
+                                control) {
    bigB <- eigen(Rinv)
    bigB <- diag(x = sqrt(bigB$values)) %*% t(bigB$vectors)
    bigB <- kronecker(Diagonal(n = num_units), bigB) %*% Diagonal(x = Arootinv)
@@ -32,13 +42,21 @@
       new_coef <- fit$beta[,1]
       }
    if(lambda > 0) {
-      fit <- glmnet(x = bigB %*% D, y = bigB %*% working_response, intercept = FALSE, lambda = lambda, penalty.factor = penalty_weights, 
-                    lower.limits = control$lower_limits, upper.limits = control$upper_limits)
+      fit <- glmnet(x = bigB %*% D, 
+                    y = bigB %*% working_response, 
+                    intercept = FALSE, 
+                    lambda = lambda, 
+                    penalty.factor = penalty_weights, 
+                    lower.limits = control$lower_limits, 
+                    upper.limits = control$upper_limits)
       new_coef <- fit$beta[,1]
       #new_coef <- coef(fit_adaptivelasso, s = lambda, exact = TRUE, x = bigB %*% D, y = bigB %*% working_response, penalty.factor = penalty_weights)[-1,1] # Using linear interpolation can speed things up per step, but often leads to longer computation time as things take more steps to complete
       }
    if(lambda == -1) { # Used purely to get glmnet to advice on a sequence of lambda
-      fit <- glmnet(x = bigB %*% D, y = bigB %*% working_response, intercept = FALSE, penalty.factor = penalty_weights)
+      fit <- glmnet(x = bigB %*% D, 
+                    y = bigB %*% working_response, 
+                    intercept = FALSE, 
+                    penalty.factor = penalty_weights)
       new_coef <- fit$beta[,1]
       }
    
