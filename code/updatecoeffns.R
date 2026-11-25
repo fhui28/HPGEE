@@ -46,8 +46,8 @@
       fit <- bigGlm(x = bigB %*% D, 
                     y = bigB %*% working_response, 
                     intercept = FALSE, 
-                    lower.limits = c(-Inf, control$lower_limits), 
-                    upper.limits. = c(Inf, control$upper_limits))
+                    lower.limits = c(control$lower_limits, -Inf), #' Need to append it at the end because bigGlm adds a silent intercept at the end!
+                    upper.limits = c(control$upper_limits, Inf)) #' Need to append it at the end because bigGlm adds a silent intercept at the end!
       new_coef <- fit$beta[,1]
       }
    if(lambda > 0) { 
@@ -56,8 +56,8 @@
                     intercept = FALSE, 
                     lambda = lambda, 
                     penalty.factor = penalty_weights, 
-                    lower.limits = c(-Inf, control$lower_limits), 
-                    upper.limits. = c(Inf, control$upper_limits))
+                    lower.limits = control$lower_limits, 
+                    upper.limits. = control$upper_limits)
       new_coef <- fit$beta[,1]
       #new_coef <- coef(fit_adaptivelasso, s = lambda, exact = TRUE, x = bigB %*% D, y = bigB %*% working_response, penalty.factor = penalty_weights)[-1,1] # Using linear interpolation can speed things up per step, but often leads to longer computation time as things take more steps to complete
       }
