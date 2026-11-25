@@ -43,7 +43,7 @@ function() {
    family = myfam
    bigX = NULL
    control = list(trace = TRUE)
-   corstr = "reducedrank"
+   corstr = "independence"
    method = "glmnet"
    rank = 3
    num_cores = 1
@@ -368,7 +368,9 @@ unpenalized_gee <- function(y,
    ##-----------------------
    ## Fitting finished; obtaining quantities to output and tidy up. 
    ##-----------------------
-   out <- list(call = match.call(), coefficients = new_coef, coefficients_matrix = matrix(new_coef, nrow = num_resp, byrow = TRUE),
+   out <- list(call = match.call(), 
+               coefficients = new_coef, 
+               coefficients_matrix = matrix(new_coef, nrow = num_resp, byrow = TRUE),
                working_correlation = new_R, disp_param = cw_disp_param, power_param = cw_power_param)
    out$linear_predictor <- new_linear_predictor
    out$fitted_values <- .calc_fitted_value(linear_predictor = out$linear_predictor, family = family)
