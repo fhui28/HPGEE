@@ -50,8 +50,22 @@ function() {
    start_coef = NULL
    }
 
-unpenalized_gee <- function(y, X, bigX = NULL, family = gaussian(), corstr = "independence", rank = 2, start_coef = NULL, num_cores = NULL, method = "glmnet",
-                  control = list(maxit = 100, tol = 1e-6, step_halving = TRUE, max_halving_steps = 30, trace = FALSE)) {
+unpenalized_gee <- function(y, 
+                            X, 
+                            bigX = NULL, 
+                            family = gaussian(), 
+                            corstr = "independence", 
+                            rank = 2,
+                            start_coef = NULL, 
+                            num_cores = NULL, 
+                            method = "glmnet",
+                            control = list(maxit = 100, 
+                                           tol = 1e-6,
+                                           step_halving = TRUE, 
+                                           max_halving_steps = 30, 
+                                           trace = FALSE,
+                                           lower_limits = -Inf,
+                                           upper_limits = Inf)) {
    
    ##-----------------------
    ## Opening checks and set up
@@ -192,8 +206,14 @@ unpenalized_gee <- function(y, X, bigX = NULL, family = gaussian(), corstr = "in
       ## Update coefficients
       ##-----------------------
       if(method == "newtonraphson") {
-         get_update_coef <- .update_coef_nopen_NR(yvec = yvec, bigX = bigX, num_units = num_units, cw_coef = cw_coef, 
-                                                  W = cw_W, Arootinv = cw_Arootinv, bigRinv = bigRinv, family = family)
+         get_update_coef <- .update_coef_nopen_NR(yvec = yvec, 
+                                                  bigX = bigX, 
+                                                  num_units = num_units, 
+                                                  cw_coef = cw_coef, 
+                                                  W = cw_W, 
+                                                  Arootinv = cw_Arootinv, 
+                                                  bigRinv = bigRinv, 
+                                                  family = family)
          
          new_coef <- get_update_coef$coefficients
          temp_coef_err <- sum((new_coef - cw_coef)^2)
@@ -211,9 +231,16 @@ unpenalized_gee <- function(y, X, bigX = NULL, family = gaussian(), corstr = "in
             }
          }
       if(method == "glmnet") {
-         get_update_coef <- .update_coef_glmnet(cw_reparametrized_coef = cw_coef, yvec = yvec, bigXtrans = bigX, 
-                                                W = cw_W, Arootinv = cw_Arootinv, Rinv = chol2inv(chol(cw_R)), 
-                                                num_units = num_units, num_resp = num_resp, family = family, control = control)
+         get_update_coef <- .update_coef_glmnet(cw_reparametrized_coef = cw_coef, 
+                                                yvec = yvec, 
+                                                bigXtrans = bigX, 
+                                                W = cw_W, 
+                                                Arootinv = cw_Arootinv, 
+                                                Rinv = chol2inv(chol(cw_R)), 
+                                                num_units = num_units, 
+                                                num_resp = num_resp, 
+                                                family = family, 
+                                                control = control)
          
          new_coef <- get_update_coef$coefficients
          temp_coef_err <- sum((new_coef - cw_coef)^2)
